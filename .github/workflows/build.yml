@@ -7,8 +7,9 @@ on:
 
       env:
       KEYBOARD_NAME: "stroem"
-      USER_REPO_PATH: "Tamanegi-51/qmk_firmware/keyboards/stroem"
+      USER_REPO_PATH: "Tamanegi-51/qmk_firmware"
       FIRMWARE_VARIANT: "vial"
+
 
 
 
