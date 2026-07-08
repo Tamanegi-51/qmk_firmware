@@ -39,11 +39,12 @@ jobs:
       - name: Install QMK dependencies
         run: |
           python3 -m pip install -r vial-qmk/requirements.txt
+          python3 -m pip install qmk
 
       - name: Build Firmware
         run: |
           cd vial-qmk
-          make ${{ env.KEYBOARD_NAME }}:${{ env.FIRMWARE_VARIANT }} || true
+          make ${{ env.KEYBOARD_NAME }}:${{ env.FIRMWARE_VARIANT }} || python3 -m qmk compile -kb ${{ env.KEYBOARD_NAME }} -km ${{ env.FIRMWARE_VARIANT }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -53,7 +54,5 @@ jobs:
             vial-qmk/*.uf2
             vial-qmk/*.hex
             vial-qmk/*.bin
-            vial-qmk/.build/*.uf2
-            vial-qmk/.build/*.hex
-            vial-qmk/.build/*.bin
+            vial-qmk/.build/*
 
