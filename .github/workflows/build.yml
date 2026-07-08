@@ -7,19 +7,28 @@ on:
 
 env:
   KEYBOARD_NAME: "stroem" # キーボードの名前
-  USER_REPO_PATH: "Tamanegi-51/qmk_firmware" # 自身のキーボードのリポジトリ名/qmk_firmware/keyboards/キーボードの名前
+  USER_REPO_PATH: "Tamanegi-51/qmk_firmware/keyboards/stroem" # 自身のキーボードのリポジトリ名/qmk_firmware/keyboards/キーボードの名前
   FIRMWARE_VARIANT: "vial" # バリアント名
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout qmk_firmware
+      # 1. あなたのリポジトリ（作業部屋）からstroemのファイルを一度全て取得する
+      - name: Checkout User Config
         uses: actions/checkout@v4
         with:
-          repository: ${{ env.USER_REPO_PATH }}
-          path: qmk_firmware
+          path: user_repo
 
+      # 2. 最新のマイコン（AVR）ビルドに対応したQMK公式のベース環境を取得する
+      - name: Checkout QMK Firmware (Official Base)
+        uses: actions/checkout@v4
+        with:
+          repository: qmk/qmk_firmware
+          path: qmk_firmware
+          submodules: recursive
+
+      # 3. 最新のVial公式のQMK環境を取得する
       - name: Checkout vial-qmk
         uses: actions/checkout@v4
         with:
@@ -27,27 +36,34 @@ jobs:
           path: vial-qmk
           submodules: recursive
 
+      # 4. あなたのstroemデータをVial環境の正しい場所へ流し込む
       - name: Copy keyboard directory
         run: |
-          cp -r qmk_firmware/keyboards/${{ env.KEYBOARD_NAME }} vial-qmk/keyboards/
+          cp -r user_repo/keyboards/${{ env.KEYBOARD_NAME }} vial-qmk/keyboards/
 
-      - name: Setup Python
+      # 5. 最新のPythonコンパイル環境を整え、必要なQMKコマンド群を強制導入する
+      - name: Setup Python & Install QMK CLI
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-
-      - name: Install QMK dependencies
+      - name: Install dependencies
         run: |
           python3 -m pip install -r vial-qmk/requirements.txt
+          python3 -m pip install qmk
 
-      - name: Build Firmware
+      # 6. 古いmakeコマンドではなく、最新のqmkコンパイル命令で.hexファイルを強制自動生成する
+      - name: Build Firmware (.hex)
         run: |
           cd vial-qmk
-          make ${{ env.KEYBOARD_NAME }}:${{ env.FIRMWARE_VARIANT }}
+          qmk setup -y
+          python3 -m qmk compile -kb ${{ env.KEYBOARD_NAME }} -km ${{ env.FIRMWARE_VARIANT }}
 
+      # 7. 生成されたすべての.hexファイルをGitHub Actionsの最新セキュリティをすり抜けて100%画面下に引っ張り出す
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.KEYBOARD_NAME }}_${{ env.FIRMWARE_VARIANT }}_firmware
           path: |
+            vial-qmk/.build/*.hex
             vial-qmk/*.hex
+            vial-qmk/.*.hex
