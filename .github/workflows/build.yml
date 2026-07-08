@@ -14,11 +14,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout qmk_firmware
+      - name: Checkout QMK Firmware (Official Base)
         uses: actions/checkout@v4
         with:
-          repository: "Tamanegi-51/qmk_firmware"
+          repository: qmk/qmk_firmware
           path: qmk_firmware
+          submodules: recursive
+
+      - name: Checkout User Repository (For Keyboard Config)
+        uses: actions/checkout@v4
+        with:
+          repository: Tamanegi-51/qmk_firmware
+          path: user_repo
 
       - name: Checkout vial-qmk
         uses: actions/checkout@v4
@@ -29,7 +36,7 @@ jobs:
 
       - name: Copy keyboard directory
         run: |
-          cp -r qmk_firmware/keyboards/${{ env.KEYBOARD_NAME }} vial-qmk/keyboards/
+          cp -r user_repo/keyboards/${{ env.KEYBOARD_NAME }} vial-qmk/keyboards/
 
       - name: Setup Python
         uses: actions/setup-python@v5
