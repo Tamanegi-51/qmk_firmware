@@ -1,9 +1,6 @@
 name: Build Vial QMK Firmware
 on:
-  push:
-    branches:
-      - master
-  workflow_dispatch:
+  workflow_dispatch: # 不要な自動テストをすべて遮断し、手動のボタン操作だけで最速実行させる
 
 env:
   KEYBOARD_NAME: "stroem" # キーボードの名前
@@ -14,43 +11,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout User Config
+      - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Run QMK Build Action
+        uses: qmk/qmk-action@v5
         with:
-          path: user_repo
-
-      - name: Checkout vial-qmk
-        uses: actions/checkout@v4
-        with:
-          repository: vial-kb/vial-qmk
-          path: vial-qmk
-          submodules: recursive
-
-      - name: Copy keyboard directory
-        run: |
-          cp -r user_repo/keyboards/${{ env.KEYBOARD_NAME }} vial-qmk/keyboards/
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install QMK dependencies
-        run: |
-          python3 -m pip install -r vial-qmk/requirements.txt
-          python3 -m pip install qmk
-
-      - name: Fix AVR Toolchain and Build Firmware
-        run: |
-          cd vial-qmk
-          # 最新のUbuntuサーバーに必要なAVRコンパイル環境（.hex用）を強制セットアップする
-          sudo apt-get update && sudo apt-get install -y gcc-avr avr-libc
-          make ${{ env.KEYBOARD_NAME }}:${{ env.FIRMWARE_VARIANT }}
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.KEYBOARD_NAME }}_${{ env.FIRMWARE_VARIANT }}_firmware
-          path: |
-            vial-qmk/*.hex
-            vial-qmk/.build/*.hex
+          keyboard: ${{ env.KEYBOARD_NAME }}
+          keymap: ${{ env.FIRMWARE_VARIANT }}
