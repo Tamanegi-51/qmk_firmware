@@ -14,21 +14,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # 1. あなたのリポジトリ（作業部屋）からstroemのファイルを一度全て取得する
       - name: Checkout User Config
         uses: actions/checkout@v4
         with:
           path: user_repo
 
-      # 2. 最新のマイコン（AVR）ビルドに対応したQMK公式のベース環境を取得する
-      - name: Checkout QMK Firmware (Official Base)
-        uses: actions/checkout@v4
-        with:
-          repository: qmk/qmk_firmware
-          path: qmk_firmware
-          submodules: recursive
-
-      # 3. 最新のVial公式のQMK環境を取得する
       - name: Checkout vial-qmk
         uses: actions/checkout@v4
         with:
@@ -36,34 +26,31 @@ jobs:
           path: vial-qmk
           submodules: recursive
 
-      # 4. あなたのstroemデータをVial環境の正しい場所へ流し込む
       - name: Copy keyboard directory
         run: |
           cp -r user_repo/keyboards/${{ env.KEYBOARD_NAME }} vial-qmk/keyboards/
 
-      # 5. 最新のPythonコンパイル環境を整え、必要なQMKコマンド群を強制導入する
-      - name: Setup Python & Install QMK CLI
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - name: Install dependencies
+
+      - name: Install QMK dependencies
         run: |
           python3 -m pip install -r vial-qmk/requirements.txt
           python3 -m pip install qmk
 
-      # 6. 古いmakeコマンドではなく、最新のqmkコンパイル命令で.hexファイルを強制自動生成する
-      - name: Build Firmware (.hex)
+      - name: Fix AVR Toolchain and Build Firmware
         run: |
           cd vial-qmk
-          qmk setup -y
-          python3 -m qmk compile -kb ${{ env.KEYBOARD_NAME }} -km ${{ env.FIRMWARE_VARIANT }}
+          # 最新のUbuntuサーバーに必要なAVRコンパイル環境（.hex用）を強制セットアップする
+          sudo apt-get update && sudo apt-get install -y gcc-avr avr-libc
+          make ${{ env.KEYBOARD_NAME }}:${{ env.FIRMWARE_VARIANT }}
 
-      # 7. 生成されたすべての.hexファイルをGitHub Actionsの最新セキュリティをすり抜けて100%画面下に引っ張り出す
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.KEYBOARD_NAME }}_${{ env.FIRMWARE_VARIANT }}_firmware
           path: |
-            vial-qmk/.build/*.hex
             vial-qmk/*.hex
-            vial-qmk/.*.hex
+            vial-qmk/.build/*.hex
