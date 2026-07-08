@@ -1,17 +1,17 @@
-name: Build Vial QMK Firmware # Vial対応ファームウェアを作成
+name: Build Vial QMK Firmware
 on:
   push:
     branches:
-      - main # mainブランチにpushされたときに実行
-  workflow_dispatch: # Actionsタブから手動で実行できるようにする
+      - master
+  workflow_dispatch:
 
-# ↓ここで、必要な変数を定義する
 env:
-  KEYBOARD_NAME: "strome" # キーボードの名前
- USER_REPO_PATH: "Tamanegi-51/qmk_firmware/keyboards/strome"# ユーザーリポジトリ内のキーボードへのパス
-  FIRMWARE_VARIANT: "default" # ファームウェアのバリアント名 (vial, defaultなど)
+  KEYBOARD_NAME: "strome"
+  USER_REPO_PATH: "Tamanegi-51/qmk_firmware/keyboards/strome"
+  FIRMWARE_VARIANT: "default"
 
 jobs:
+
   build:
     runs-on: ubuntu-latest
     container: qmkfm/qmk_cli:latest # QMK環境を使用
