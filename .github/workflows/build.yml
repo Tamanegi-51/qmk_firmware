@@ -1,3 +1,4 @@
+
 name: Build Vial QMK Firmware
 on:
   push:
@@ -6,9 +7,9 @@ on:
   workflow_dispatch:
 
 env:
-  KEYBOARD_NAME: "stroem"
-  USER_REPO_PATH: "Tamanegi-51/qmk_firmware"
-  FIRMWARE_VARIANT: "vial"
+  KEYBOARD_NAME: "stroem" # キーボードの名前
+  USER_REPO_PATH: "Tamanegi-51/qmk_firmware" # 自身のキーボードのリポジトリ名/qmk_firmware/keyboards/キーボードの名前
+  FIRMWARE_VARIANT: "vial" # バリアント名
 
 jobs:
   build:
@@ -39,12 +40,11 @@ jobs:
       - name: Install QMK dependencies
         run: |
           python3 -m pip install -r vial-qmk/requirements.txt
-          python3 -m pip install qmk
 
       - name: Build Firmware
         run: |
           cd vial-qmk
-          make ${{ env.KEYBOARD_NAME }}:${{ env.FIRMWARE_VARIANT }} || python3 -m qmk compile -kb ${{ env.KEYBOARD_NAME }} -km ${{ env.FIRMWARE_VARIANT }}
+          make ${{ env.KEYBOARD_NAME }}:${{ env.FIRMWARE_VARIANT }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -54,5 +54,4 @@ jobs:
             vial-qmk/*.uf2
             vial-qmk/*.hex
             vial-qmk/*.bin
-            vial-qmk/.build/*
 
