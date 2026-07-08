@@ -1,6 +1,6 @@
 name: Build Vial QMK Firmware
 on:
-  workflow_dispatch: # 不要な自動テストをすべて遮断し、手動のボタン操作だけで最速実行させる
+  workflow_dispatch: # 手動実行専用に指定し、無駄な自動テストを完全に遮断する
 
 env:
   KEYBOARD_NAME: "stroem" # キーボードの名前
